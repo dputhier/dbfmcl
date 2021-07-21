@@ -6,10 +6,18 @@ abstract: >
   A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (...). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset.
   dbfmcl package version: `r packageVersion("dbfmcl")`
 output:
-  rmarkdown::html_document:
-    highlight: pygments
-    toc: true
-    fig_width: 5
+html_document:
+  fig_caption: yes
+  highlight: zenburn
+  theme: cerulean
+  toc: no
+  toc_depth: 3
+pdf_document:
+  fig_caption: yes
+  highlight: zenburn
+  toc: no
+  toc_depth: 3
+word_document: default
 bibliography: library.bib
 vignette: >
   %\VignetteIndexEntry{Analyzing scRNA-seq data with DBFMCL}
@@ -24,6 +32,8 @@ knitr::opts_chunk$set(tidy = FALSE,
                       dev = "png",
                       message = FALSE, error = FALSE, warning = TRUE)
 ```
+
+NOTE: THE VERSION IS CURRENTLY UNSTABLE AND ONLY FOR DEVELOPMENT PURPOSE.
 
 
 # Introduction
@@ -44,13 +54,16 @@ For this tutorial, we will use the classical Seurat dataset related to Periphera
   
 ```{r}
 # This is for developement purpose
+# please adapt the path.
 path_to_dbfmcl_git = "/Users/puthier/Documents/git/project_dev/dbfmcl/"
+
+
 reinstall <- function(){
   # For development purpose
   # please adapt the path
   try(detach("package:dbfmcl"), silent = TRUE)
   library(devtools)
-  roxygen2::roxygenise("/Users/puthier/Documents/git/project_dev/dbfmcl/")
+  roxygen2::roxygenise(path_to_dbfmcl_git)
   install(path_to_dbfmcl_git)
 }
 reinstall()
