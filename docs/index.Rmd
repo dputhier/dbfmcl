@@ -56,7 +56,6 @@ While this algorithm was previously developed for microarray we have adpated it 
 ```{r, installation, eval=TRUE, echo=TRUE, include=TRUE}
 devtools::install_github("dputhier/dbfmcl")
 library(dbfmcl)
-
 ```
 
 ## Installing MCL
@@ -136,15 +135,31 @@ pbmc_norm <- NormalizeData(pbmc_raw,
 
 From this Seurat object we can directly perform feature selection and gene cluster inference. Here *DBFMCL()* is used with default arguments.
 
-```{r}
-pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
-dbf <- DBFMCL(pbmc_df)
+```{r rundbf}
+  pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
+  dbf <- DBFMCL(pbmc_df, 
+                mcl_cmd_line=TRUE,
+                distance_method="pearson",
+                av_dot_prod_min=2,
+                k = 50,
+                inflation = 8)
 ```
 
-Note that the result of the DBFMCL function is an S4 object with the following slots:
+Note that the result of the DBFMCL function is an S4 object (ClusterSet).
+
+```{r}
+is(dbf)
+```
+This object contains the following slots:
 
 ```{r}
 slotNames(dbf)
+```
+
+It has the following methods:
+
+```{r}
+showMethods(class="ClusterSet", where = "package:dbfmcl")
 ```
 
 # Search of cell populations using DBFMCL selected genes
@@ -183,6 +198,31 @@ Both the dimplot and gene profiles can be presented in the same diagram using th
 g_profiles_no_legend <- g_profiles + theme(legend.position = "none")
 g_profiles_no_legend + dim_plot_clust
 ```
+# Perform alternative cell classification
+
+
+```{r}
+library(amap)
+##  hclust on samples
+hier_clustering <- hcluster(log2(t(dbf_seurat@data) +1), method="pearson", link="average", nbproc = 10)
+dbf_seurat@cell_order <- colnames(dbf_seurat@data)[hier_clustering$order]
+
+g_profiles_hc <- plot_clust(dbf_seurat,
+       average_only = TRUE,
+       floor=-1, 
+       ceil=1)
+g_profiles_hc
+```
+
+# R session
+
+```{r}
+sessionInfo()
+```
+
+        
+        
+
 
 
 
