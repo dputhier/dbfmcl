@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="J. Bavais, Aurelie Bergon, Fabrice Lopez, Julien Textoris, L. Spinelli and D. Puthier" />
+<meta name="author" content="J. Bavais, Sebastien Nin, Aurelie Bergon, Fabrice Lopez, L. Spinelli and D. Puthier" />
 
-<meta name="date" content="2021-07-21" />
+<meta name="date" content="2021-07-22" />
 
 <title>The dbfmcl library</title>
 
@@ -383,11 +383,11 @@ summary {
 
 
 <h1 class="title toc-ignore">The dbfmcl library</h1>
-<h4 class="author">J. Bavais, Aurelie Bergon, Fabrice Lopez, Julien Textoris, L. Spinelli and D. Puthier</h4>
-<h4 class="date">2021-07-21</h4>
+<h4 class="author">J. Bavais, Sebastien Nin, Aurelie Bergon, Fabrice Lopez, L. Spinelli and D. Puthier</h4>
+<h4 class="date">2021-07-22</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (…). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset. dbfmcl package version: 0.1.4
+A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (…). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset. dbfmcl package version: 0.1.5
 </div>
 
 </div>
@@ -400,72 +400,14 @@ A basic task in the analysis of transcriptomics data is the selection of feature
 <p>TODO</p>
 <p>One important issue in RNA-seq and scRNA-seq is the selection of informative features (i.e genes) and the identification of gene clusters. The scRNA-seq datasets are considered to be highly noisy and a typical way of selecting features is to filter them based on variance. Regarding gene partitioning a popular solution is to use k-means. In the context of the microarray data analysis we had shown that another way of selecting informative genes is to try to capture groups of highly correlated features (clusters). These genes can be viewed as elements displaying weak distances to their nearest neighbors that represent densely populated regions (i.e. strong profile similarities). This solution was previously implemented in the DBFMCL (Density-Based Filtering and Markov Clustering) algorithm. To isolate these regions DBF-MCL computes, for each gene/element, the distance with its kth nearest neighbor (DKNN). In order to define a critical DKNN value (that will depend on the dataset), DBF-MCL computes simulated DKNN values by using an empirical randomization procedure. Given a dataset containing n genes and p samples, a simulated DKNN value is obtained by sampling n distance values from the gene-gene distance matrix D and by extracting the kth-smallest value. This procedure is repeated n times to obtain a set of simulated DKNN values S. Computed distributions of simulated DKNN are used to compute a FDR value for each observed DKNN value. The critical value of DKNN is the one for which a user-defined FDR value (typically 10%) is observed. Genes with DKNN value below this threshold are selected and used to construct a graph. In this graph, edges are constructed between two genes (nodes) if one of them belongs to the k-nearest neighbors of the other. Edges are weighted based on the respective coefficient of correlation (i.e., similarity) and the graph obtained is partitioned using the Markov CLustering algorithm (MCL). While this algorithm was previously developed for microarray we have adpated it to work with discrete data, especially scRNA-seq data.</p>
 </div>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<pre class="r"><code>devtools::install_github(&quot;dputhier/dbfmcl&quot;)
+library(dbfmcl)</code></pre>
+</div>
 <div id="applying-dbfmcl-to-pbmc-dataset" class="section level1">
 <h1>Applying DBFMCL to PBMC dataset</h1>
 <p>For this tutorial, we will use the classical Seurat dataset related to Peripheral Blood Mononuclear Cells (PBMC) that is freely available from 10X Genomics. This <a href="https://cf.10xgenomics.com/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz">dataset</a> contains 2,700 single cells sequenced on the Illumina NextSeq 500.</p>
-<pre class="r"><code># This is for developement purpose
-# please adapt the path.
-path_to_dbfmcl_git = &quot;/Users/puthier/Documents/git/project_dev/dbfmcl/&quot;
-
-
-reinstall &lt;- function(){
-  # For development purpose
-  # please adapt the path
-  try(detach(&quot;package:dbfmcl&quot;), silent = TRUE)
-  library(devtools)
-  roxygen2::roxygenise(path_to_dbfmcl_git)
-  install(path_to_dbfmcl_git)
-}
-reinstall()</code></pre>
-<pre><code>## Warning: The existing 'NAMESPACE' file was not generated by roxygen2, and will
-## not be overwritten.</code></pre>
-<pre><code>## 
-##   
-   checking for file ‘/Users/puthier/Documents/git/project_dev/dbfmcl/DESCRIPTION’ ...
-  
-✓  checking for file ‘/Users/puthier/Documents/git/project_dev/dbfmcl/DESCRIPTION’
-## 
-  
-─  preparing ‘dbfmcl’: (409ms)
-## 
-  
-✓  checking DESCRIPTION meta-information
-## ─  cleaning src
-## 
-  
-─  checking for LF line-endings in source and make files and shell scripts
-## 
-  
-─  checking for empty or unneeded directories
-## 
-  
-─  building ‘dbfmcl_0.1.4.tar.gz’
-## 
-  
-   
-## 
-Running /Library/Frameworks/R.framework/Resources/bin/R CMD INSTALL \
-##   /var/folders/zy/wl3dj2_n76zfc8sdvny1q06c0000gn/T//RtmpxI0EHU/dbfmcl_0.1.4.tar.gz \
-##   --install-tests 
-## * installing to library ‘/Library/Frameworks/R.framework/Versions/3.6/Resources/library’
-## * installing *source* package ‘dbfmcl’ ...
-## ** using staged installation
-## ** libs
-## clang -I&quot;/Library/Frameworks/R.framework/Resources/include&quot; -DNDEBUG   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c dbf.c -o dbf.o
-## clang -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/Library/Frameworks/R.framework/Resources/lib -L/usr/local/lib -o dbfmcl.so dbf.o -F/Library/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
-## installing to /Library/Frameworks/R.framework/Versions/3.6/Resources/library/00LOCK-dbfmcl/00new/dbfmcl/libs
-## ** R
-## ** tests
-## ** byte-compile and prepare package for lazy loading
-## ** help
-## *** installing help indices
-## ** building package indices
-## ** testing if installed package can be loaded from temporary location
-## ** checking absolute paths in shared objects and dynamic libraries
-## ** testing if installed package can be loaded from final location
-## ** testing if installed package keeps a record of temporary installation path
-## * DONE (dbfmcl)</code></pre>
-<pre class="r"><code>library(dbfmcl)</code></pre>
 <pre class="r"><code>library(Seurat)
 library(dbfmcl)
 
@@ -487,7 +429,7 @@ pbmc_norm &lt;- NormalizeData(pbmc_raw,
 dbf &lt;- DBFMCL(pbmc_df)</code></pre>
 <pre><code>## The following parameters will be used : 
 ##  Working directory:  /Users/puthier/Documents/git/project_dev/dbfmcl_doc/docs 
-##  Name:  51X5zAu3vU 
+##  Name:  8roD94kZ6D 
 ##  Distance method:  pearson 
 ##  Minimum average dot product for clusters:  2 
 ##  Minimum cluster size:  10 
@@ -500,7 +442,7 @@ dbf &lt;- DBFMCL(pbmc_df)</code></pre>
 ## 
 ## Running mcl (graph partitioning)...  --&gt;  Done.
 ## 
-##  --&gt; creating file :  /Users/puthier/Documents/git/project_dev/dbfmcl_doc/docs/51X5zAu3vU.mcl_out.txt 
+##  --&gt; creating file :  /Users/puthier/Documents/git/project_dev/dbfmcl_doc/docs/8roD94kZ6D.mcl_out.txt 
 ## 
 ## |--      --&gt;  9  clusters conserved after MCL partitioning. INFO 
 ## |--      --&gt;  2034  clusters filtered out from MCL partitioning (size and mean dot product).</code></pre>

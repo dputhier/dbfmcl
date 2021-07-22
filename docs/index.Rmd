@@ -1,6 +1,6 @@
 ---
 title: "The dbfmcl library"
-author: "J. Bavais, Aurelie Bergon, Fabrice Lopez, Julien Textoris, L. Spinelli and D. Puthier"
+author: "J. Bavais, Sebastien Nin, Aurelie Bergon, Fabrice Lopez, L. Spinelli and D. Puthier"
 date: "`r Sys.Date()`"
 abstract: >
   A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (...). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset.
@@ -47,16 +47,17 @@ compute a FDR value for each observed DKNN value. The critical value of DKNN is 
 the respective coefficient of correlation (i.e., similarity) and the graph obtained is partitioned using the Markov CLustering algorithm (MCL).
 While this algorithm was previously developed for microarray we have adpated it to work with discrete data, especially scRNA-seq data.
 
-# Applying DBFMCL to PBMC dataset
+# Installation
 
-For this tutorial, we will use the classical Seurat dataset related to Peripheral Blood Mononuclear Cells (PBMC) that is freely available from 10X Genomics. This [dataset](https://cf.10xgenomics.com/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz) contains 2,700 single cells sequenced on the Illumina NextSeq 500. 
-  
-  
-```{r}
+```{r, installation, eval=TRUE, echo=TRUE, include=TRUE}
+devtools::install_github("dputhier/dbfmcl")
+library(dbfmcl)
+```
+
+```{r, eval=FALSE, echo=FALSE, include=FALSE}
 # This is for developement purpose
 # please adapt the path.
 path_to_dbfmcl_git = "/Users/puthier/Documents/git/project_dev/dbfmcl/"
-
 
 reinstall <- function(){
   # For development purpose
@@ -69,6 +70,12 @@ reinstall <- function(){
 reinstall()
 library(dbfmcl)
 ```
+
+# Applying DBFMCL to PBMC dataset
+
+For this tutorial, we will use the classical Seurat dataset related to Peripheral Blood Mononuclear Cells (PBMC) that is freely available from 10X Genomics. This [dataset](https://cf.10xgenomics.com/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz) contains 2,700 single cells sequenced on the Illumina NextSeq 500. 
+  
+
 
 ```{r}
 library(Seurat)
