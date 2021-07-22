@@ -6,18 +6,19 @@ abstract: >
   A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (...). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset.
   dbfmcl package version: `r packageVersion("dbfmcl")`
 output:
-html_document:
-  fig_caption: yes
-  highlight: zenburn
-  theme: cerulean
-  toc: no
-  toc_depth: 3
-pdf_document:
-  fig_caption: yes
-  highlight: zenburn
-  toc: no
-  toc_depth: 3
-word_document: default
+  html_document:
+    fig_caption: yes
+    highlight: zenburn
+    theme: cerulean
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    fig_caption: yes
+    highlight: zenburn
+    toc: no
+    toc_depth: 3
+  word_document: default
 bibliography: library.bib
 vignette: >
   %\VignetteIndexEntry{Analyzing scRNA-seq data with DBFMCL}
@@ -49,10 +50,41 @@ While this algorithm was previously developed for microarray we have adpated it 
 
 # Installation
 
+## Installing DBFMCL
+
+
 ```{r, installation, eval=TRUE, echo=TRUE, include=TRUE}
 devtools::install_github("dputhier/dbfmcl")
 library(dbfmcl)
+
 ```
+
+## Installing MCL
+
+Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we really encourage you to install the original MCL tool from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
+
+You may install MCL using conda. Importantly, the *mcl* command should be in your PATH and reachable from within R.
+
+```{bash, eval=FALSE}
+conda install -c bioconda mcl
+```
+
+Alternatively install MCL from sources.
+
+```{bash, eval=FALSE}
+# Download the latest version of mcl 
+wget http://micans.org/mcl/src/mcl-latest.tar.gz
+# Uncompress and install mcl
+tar xvfz mcl-latest.tar.gz
+cd mcl-xx-xxx
+./configure
+make
+sudo make install
+# You should get mcl in your path
+mcl -h
+```
+
+
 
 ```{r, eval=FALSE, echo=FALSE, include=FALSE}
 # This is for developement purpose
@@ -76,10 +108,10 @@ library(dbfmcl)
 For this tutorial, we will use the classical Seurat dataset related to Peripheral Blood Mononuclear Cells (PBMC) that is freely available from 10X Genomics. This [dataset](https://cf.10xgenomics.com/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz) contains 2,700 single cells sequenced on the Illumina NextSeq 500. 
   
 
-
 ```{r}
 library(Seurat)
 library(dbfmcl)
+library(ggplot2)
 
 # Load the PBMC dataset
 # please adapt the path
@@ -89,6 +121,11 @@ pbmc_raw <- CreateSeuratObject(counts = pbmc_data, project = "pbmc3k",
                                min.cells = 3, 
                                min.features = 200)
 
+```
+
+TODO : add some regular filtering steps.
+
+```{r}
 # Perform simple log-transformation and scaling
 pbmc_norm <- NormalizeData(pbmc_raw, 
                           normalization.method = "LogNormalize",
@@ -143,7 +180,8 @@ g_profiles
 Both the dimplot and gene profiles can be presented in the same diagram using the command below
 
 ```{r}
-g_profiles + dim_plot_clust
+g_profiles_no_legend <- g_profiles + theme(legend.position = "none")
+g_profiles_no_legend + dim_plot_clust
 ```
 
 
