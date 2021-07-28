@@ -1148,7 +1148,59 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
   return(list(data = data, name = name))
 }
 
+#################################################################
+##    Running gprofiler2 to perform enrichment analysis
+#################################################################
 
+#' @title
+#' Perform gene enrichment analysis.
+##' @description
+#' Perform enrichment analysis on all MCL clusters indepentently and store the results in the cluster_annotations slot of the ClusterSet object.
+#' @param data A \code{matrix}, \code{data.frame} or \code{Seurat} object.
+#' @param filename A character string representing the file name.
+#' @param path A character string representing the data directory where
+#' intermediary files are to be stored. Default to current working directory.
+#'
+#' @return A list containing a matrix and the filename (if filename argument is used).
+#' @export get_data_4_DBFMCL
+#'
+#' @examples
+#' 
+#' \dontrun{
+#' ## with an artificial dataset
+#'
+#' m <- matrix(rnorm(80000), nc = 20)
+#' res <- get_data_4_DBFMCL(data=m)
+#' }
+#' 
+
+# setGeneric("enrich_analysis",
+#     function(object,
+#             specie="hsapiens") {
+#       standardGeneric("enrich_analysis")
+# })
+
+# #' @rdname enrich_analysis
+# setMethod("enrich_analysis",
+#     signature(object = "ClusterSet"),
+#     function(object,
+#             specie="hsapiens") {
+
+#       g <- ggplot2::ggplot_build(dimplot_obj)
+#       tmp_mat <- dplyr::distinct(as.data.frame(cbind(g$data[[1]]$colour,
+#                                               as.character(g$plot$data$ident))))
+#       cell_col_tmp <- tmp_mat[,1]
+#       cell_grp_tmp <- tmp_mat[,2]
+#       object@cell_colors <- stats::setNames(as.character(cell_col_tmp), cell_grp_tmp)
+
+#       tmp_mat <- dplyr::distinct(as.data.frame(cbind(rownames(g$plot$data), as.character(g$plot$data$ident))))
+#       object@cell_types <- stats::setNames(as.character(tmp_mat[,2]), tmp_mat[,1])
+
+#       object@cell_order <- rownames(g$plot$data)[order(g$plot$data$ident)]
+
+#       return(object)
+#   }
+# )
 #########################################################
 ##      END PACKAGE DBFMCL
 #########################################################
