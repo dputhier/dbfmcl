@@ -35,6 +35,7 @@ library(reshape2)
 library(dplyr)
 library(MCL)
 library(igraph)
+library(gprofiler2)
 
 #' @title
 #' ClusterSet
@@ -1146,6 +1147,8 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
 
   return(list(data = data, name = name))
 }
+
+
 #########################################################
 ##      END PACKAGE DBFMCL
 #########################################################

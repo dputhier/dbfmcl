@@ -22,6 +22,7 @@ importFrom(ggplot2, ggplot, theme_bw,
 importFrom(reshape2, melt)
 importFrom(magrittr, '%>%')
 importFrom(testthat, expect_equal)
+importFrom(gprofiler2, gost, gostplot)
 exportClasses("ClusterSet")
 
 export(DBFMCL,
