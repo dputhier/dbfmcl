@@ -1174,33 +1174,27 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
 #' }
 #' 
 
-# setGeneric("enrich_analysis",
-#     function(object,
-#             specie="hsapiens") {
-#       standardGeneric("enrich_analysis")
-# })
+setGeneric("enrich_analysis",
+    function(object,
+            specie="hsapiens") {
+      standardGeneric("enrich_analysis")
+})
 
-# #' @rdname enrich_analysis
-# setMethod("enrich_analysis",
-#     signature(object = "ClusterSet"),
-#     function(object,
-#             specie="hsapiens") {
+#' @rdname enrich_analysis
+setMethod("enrich_analysis",
+    signature(object = "ClusterSet"),
+    function(object,
+            specie="hsapiens") {
 
-#       g <- ggplot2::ggplot_build(dimplot_obj)
-#       tmp_mat <- dplyr::distinct(as.data.frame(cbind(g$data[[1]]$colour,
-#                                               as.character(g$plot$data$ident))))
-#       cell_col_tmp <- tmp_mat[,1]
-#       cell_grp_tmp <- tmp_mat[,2]
-#       object@cell_colors <- stats::setNames(as.character(cell_col_tmp), cell_grp_tmp)
+      for(cluster in unique(object@cluster)){
+        query = rownames(object@data[object@cluster == cluster,])
+        gostres <- gost(query, organism = "hsapiens", ordered_query = FALSE, significant = TRUE, exclude_iea = T)
+        object@cluster_annotations[[cluster]] = gostres$result
+      }
 
-#       tmp_mat <- dplyr::distinct(as.data.frame(cbind(rownames(g$plot$data), as.character(g$plot$data$ident))))
-#       object@cell_types <- stats::setNames(as.character(tmp_mat[,2]), tmp_mat[,1])
-
-#       object@cell_order <- rownames(g$plot$data)[order(g$plot$data$ident)]
-
-#       return(object)
-#   }
-# )
+      return(object)
+  }
+)
 #########################################################
 ##      END PACKAGE DBFMCL
 #########################################################
