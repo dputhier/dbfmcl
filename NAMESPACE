@@ -32,6 +32,7 @@ export(DBFMCL,
         plot_clust,
         load_seurat,
         write_clust,
+        enrich_analysis,
         VERBOSITY_DBFMCL)
 
 
