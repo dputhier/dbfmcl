@@ -1156,13 +1156,11 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
 #' Perform gene enrichment analysis.
 ##' @description
 #' Perform enrichment analysis on all MCL clusters indepentently and store the results in the cluster_annotations slot of the ClusterSet object.
-#' @param data A \code{matrix}, \code{data.frame} or \code{Seurat} object.
-#' @param filename A character string representing the file name.
-#' @param path A character string representing the data directory where
-#' intermediary files are to be stored. Default to current working directory.
+#' @param object A \code{ClusterSet} object.
+#' @param specie Specie name, as a concatenation of the first letter of the name and the family name, e.g human - hsapien
 #'
-#' @return A list containing a matrix and the filename (if filename argument is used).
-#' @export get_data_4_DBFMCL
+#' @return A \code{ClusterSet} object
+#' @export enrich_analysis
 #'
 #' @examples
 #' 
