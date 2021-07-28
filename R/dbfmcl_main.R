@@ -1187,6 +1187,7 @@ setMethod("enrich_analysis",
             specie="hsapiens") {
 
       for(cluster in unique(object@cluster)){
+        print(paste0("Enrichment analysis for cluster ", cluster))
         query = rownames(object@data[object@cluster == cluster,])
         gostres <- gost(query, organism = "hsapiens", ordered_query = FALSE, significant = TRUE, exclude_iea = T)
         object@cluster_annotations[[cluster]] = gostres$result
