@@ -20,13 +20,3 @@ A \code{ClusterSet} object
 \description{
 Perform enrichment analysis on all MCL clusters indepentently and store the results in the cluster_annotations slot of the ClusterSet object.
 }
-\examples{
-
-\dontrun{
-## with an artificial dataset
-
-m <- matrix(rnorm(80000), nc = 20)
-res <- get_data_4_DBFMCL(data=m)
-}
-
-}

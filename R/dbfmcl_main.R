@@ -1165,11 +1165,9 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
 #' @examples
 #' 
 #' \dontrun{
-#' ## with an artificial dataset
+#' ## Assuming myobject is a ClusterSet object with at least 1 cluster.
 #'
-#' m <- matrix(rnorm(80000), nc = 20)
-#' res <- get_data_4_DBFMCL(data=m)
-#' }
+#' gores <- enrich_analysis(myobject)
 #' 
 
 setGeneric("enrich_analysis",
