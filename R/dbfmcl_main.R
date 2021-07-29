@@ -1186,11 +1186,11 @@ setMethod("enrich_analysis",
 
       for(cluster in unique(object@cluster)){
         print(paste0("Enrichment analysis for cluster ", cluster))
+        cluster_name = paste0("Cluster_", cluster)
         query = rownames(object@data[object@cluster == cluster,])
         gostres <- gost(query, organism = "hsapiens", ordered_query = FALSE, significant = TRUE, exclude_iea = T)
-        object@cluster_annotations[[cluster]] = gostres$result
+        object@cluster_annotations[[cluster]] = list(result = gostres$result, meta = gostres$meta)
       }
-
       return(object)
   }
 )
