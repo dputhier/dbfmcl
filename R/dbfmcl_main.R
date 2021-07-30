@@ -1168,7 +1168,7 @@ get_data_4_DBFMCL <- function(data = NULL, filename = NULL, path = ".") {
 #' ## Assuming myobject is a ClusterSet object with at least 1 cluster.
 #'
 #' gores <- enrich_analysis(myobject)
-#' 
+#' }
 
 setGeneric("enrich_analysis",
     function(object,
@@ -1192,6 +1192,53 @@ setMethod("enrich_analysis",
       return(object)
   }
 )
+
+#################################################################
+##    Manhattan-like-plot for enrichment analysis on ClusterSet object
+#################################################################
+
+#' @title
+#' Manhattan-like-plot of enrichment analysis results
+##' @description
+#' Retrieve enrichment analysis results from a ClusterSet object and draw a Manhattan-like-plot.
+#' @param object A \code{ClusterSet} object.
+#' @param interactive A boolean specifiying if the plot should be interactive.
+#' @param clusters  A vector of cluster names to plot
+#'
+#' @return A \code{ClusterSet} object
+#' @export enrich_viz
+#'
+#' @examples
+#' 
+#' \dontrun{
+#' ## Assuming myobject is a ClusterSet object with at least 1 cluster.
+#'
+#' enrich_viz(myobject)
+#' }
+
+setGeneric("enrich_viz",
+    function(object,
+            interactive=TRUE,
+            clusters = 1) {
+      standardGeneric("enrich_viz")
+})
+
+#' @rdname enrich_viz
+setMethod("enrich_viz",
+    signature(object = "ClusterSet"),
+    function(object,
+            interactive=TRUE,
+            clusters = 1) {
+        if(length(clusters) >= 2){
+          print("Error, you provided more than 1 cluster. For now, the package can't draw enrichment analysis results for more than one cluster.")
+        }else if (length(clusters) == 0) {
+          print("Error, you did not specified any cluster.")
+        }else{
+          gostplot(object@cluster_annotations[[clusters]], interactive = interactive)
+        }
+    }
+)
+
 #########################################################
 ##      END PACKAGE DBFMCL
 #########################################################
