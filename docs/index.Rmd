@@ -132,13 +132,24 @@ pbmc_raw <- CreateSeuratObject(counts = pbmc_data, project = "pbmc3k",
 
 ```
 
-TODO : add some regular filtering steps.
+We compute the classical QC metrics and  define a set of cells for further analysis.
+
+```{r}
+# Filter cells based on QC metrics
+pbmc_raw[["percent.mt"]] <- PercentageFeatureSet(pbmc_raw, pattern = "^MT-")
+pbmc_raw <- subset(pbmc_raw, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
+```
+
+Then the dataset is normalized as in the classical approach described in Seurat package.
+
 
 ```{r normalizingseurat}
+
 # Perform simple log-transformation and scaling
 pbmc_norm <- NormalizeData(pbmc_raw, 
                           normalization.method = "LogNormalize",
                           scale.factor = 10000)
+
 
 
 ```
@@ -197,14 +208,15 @@ showMethods(class="ClusterSet", where = "package:scigenex")
 The gene filtered using DBFMCL can now be used to subset a Seurat Object and search for cell populations.
 
 ```{r}
-pbmc_dbf <- subset(pbmc_norm,  features=rownames(dbf@data))
+pbmc_dbf <- pbmc_norm
+VariableFeatures(pbmc_dbf) <- rownames(dbf@data)
 pbmc_dbf <- ScaleData(pbmc_dbf)
 pbmc_dbf <- RunPCA(pbmc_dbf, features = rownames(pbmc_dbf))
 pbmc_dbf <- RunUMAP(pbmc_dbf, dims = 1:10)
 pbmc_dbf <- FindNeighbors(pbmc_dbf, reduction = "pca", dims = 1:20)
 pbmc_dbf <- FindClusters(pbmc_dbf)
-dim_plot_clust <- DimPlot(pbmc_dbf, reduction = "umap")
-dim_plot_clust
+dim_plot_dbf <- DimPlot(pbmc_dbf, reduction = "umap")
+dim_plot_dbf
 ```
 
 # Transfer infered cell populations to a ClusterSet object
@@ -214,11 +226,11 @@ The inferred populations can now be transferred into the ClusterSet object and r
 ```{r}
 dbf_seurat <- load_seurat(dbf, 
                           seurat_obj=pbmc_dbf,
-                          dimplot_obj=dim_plot_clust)
+                          dimplot_obj=dim_plot_dbf)
 g_profiles <- plot_clust(dbf_seurat,
-       average_only = TRUE,
-       floor=-1, 
-       ceil=1)
+                       average_only = TRUE,
+                       floor=-1, 
+                       ceil=1)
 g_profiles
 ```
 
@@ -226,25 +238,62 @@ Both the dimplot and gene profiles can be presented in the same diagram using th
 
 ```{r}
 g_profiles_no_legend <- g_profiles + theme(legend.position = "none")
-g_profiles_no_legend + dim_plot_clust
+g_profiles_no_legend + dim_plot_dbf
+```
+
+Alternatively the cluster obtained can be represented using a heatmap (thanks to the *type* argument):
+
+```{r}
+g_heatmap <- plot_clust(dbf_seurat, 
+                         average_only = TRUE,
+                         type="tile",
+                         floor=-1, 
+                         ceil=1)
+g_heatmap
+```
+
+
+# Comparing with DBFMCL gene filtering with variance stabilizing transformation
+
+We can compare the clustering power of the gene selected using DBFMCL with those obtained using the original method from Seurat (variance stabilizing transformation, vst). As shown below, on this PBMC dataset, DBFMCL selected genes (left) tend to produce a more resolutive map of cell populations.
+
+```{r}
+# Create a dimplot using original (vst) gene filtering method.
+pbmc_orig <- FindVariableFeatures(pbmc_norm, selection.method = "vst", nfeatures = 2000)
+pbmc_orig <- ScaleData(pbmc_orig)
+pbmc_orig <- RunPCA(pbmc_orig, features = rownames(pbmc_dbf))
+pbmc_orig <- RunUMAP(pbmc_orig, dims = 1:10)
+pbmc_orig <- FindNeighbors(pbmc_orig, reduction = "pca", dims = 1:20)
+pbmc_orig <- FindClusters(pbmc_orig)
+dim_plot_orig <- DimPlot(pbmc_orig, reduction = "umap")
+
+# Compare reduction map obtained with vst and DBFMCL filtering method.
+dim_plot_orig + dim_plot_dbf
 ```
 
 # Perform alternative cell ordering
 
+It is easy to define alternative ordering for the columns/cells. For instance one may try the hierarchical clustering to try to put emphasis on some gene clusters.
 
 ```{r}
-#library(amap)
+library(amap)
 ##  hclust on samples
-#hier_clustering <- hcluster(log2(t(dbf_seurat@data) +1), method="pearson", link="average", nbproc = 10)
+hier_clustering <- hcluster(log2(t(dbf_seurat@data) +1), method="pearson", link="average", nbproc = 10)
 dbf_hc <- dbf_seurat
-#dbf_hc@cell_order <- colnames(dbf_hc@data)[hier_clustering$order]
+dbf_hc@cell_order <- colnames(dbf_hc@data)[hier_clustering$order]
 
-#g_profiles_hc <- plot_clust(dbf_hc,
-#       average_only = TRUE,
-#       floor=-1, 
-#       ceil=1)
-#g_profiles_hc
+g_profiles_hc <- plot_clust(dbf_hc,
+       average_only = TRUE,
+       floor=-1, 
+       type="tile",
+       ceil=1)
+g_profiles_hc
 ```
+
+
+
+
+
 
 # R session
 
