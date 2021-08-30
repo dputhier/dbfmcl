@@ -192,7 +192,7 @@ pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
 # NOTE: Under Rstudio, the progress bar may sometimes freeze
 # while the algorithm is still running. This has to
 # be fixed.
-dbf <- DBFMCL(pbmc_df[1:3000,], 
+dbf <- DBFMCL(pbmc_df, 
               mcl_cmd_line=TRUE,
               distance_method="pearson",
               av_dot_prod_min=2,
