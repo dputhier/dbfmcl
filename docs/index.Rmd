@@ -33,14 +33,24 @@ vignette: >
 <style>
 
 p.comment {
-background-color: #DBDBDB;
+background-color: #D6EBF0;
+color: #24535E;
 padding: 10px;
-border: 1px solid black;
+border: 1px solid #C6E4EA;
 margin-left: 25px;
 border-radius: 5px;
 font-style: italic;
 }
 
+p.alert {
+background-color: #F3D8DA;
+color: #692225;
+padding: 10px;
+border: 1px solid #EEC8CB;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
 </style>
 
 ```{r setup, echo=FALSE, results="hide"}
@@ -72,7 +82,9 @@ library(scigenex)
 
 ## Installing MCL {#installation}
 
+<p class="alert">
 The scigenex method implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install the original MCL tool from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
+</p>
 
 You may install MCL using conda. Importantly, the *mcl* command should be in your PATH and reachable from within R.
 
@@ -221,12 +233,20 @@ dim_plot_dbf
 
 # Transfer infered cell populations to a ClusterSet object
 
-The inferred populations can now be transferred into the ClusterSet object and represented using the plot_clust function.
+The inferred populations can now be transferred into the ClusterSet object using the *load_seurat()* method and represented using the plot_clust function.
 
 ```{r}
 dbf_seurat <- load_seurat(dbf, 
                           seurat_obj=pbmc_dbf,
                           dimplot_obj=dim_plot_dbf)
+
+```
+
+# Visualizing gene clusters
+
+The *plot_clust()* method can be used to display the cluster of co-regulated genes. Here we only display the average expression profile of each cluster. Note that to improve readability data are floored and ceiled (si corresponding arguments).
+ 
+```{r plot_clust}
 g_profiles <- plot_clust(dbf_seurat,
                        average_only = TRUE,
                        floor=-1, 
@@ -241,9 +261,9 @@ g_profiles_no_legend <- g_profiles + theme(legend.position = "none")
 g_profiles_no_legend + dim_plot_dbf
 ```
 
-Alternatively the cluster obtained can be represented using a heatmap (thanks to the *type* argument):
+Alternatively the cluster obtained can be represented using a heatmap (thanks to the *type* argument that can be set to 'tile'):
 
-```{r}
+```{r plot_clust_heatmap}
 g_heatmap <- plot_clust(dbf_seurat, 
                          average_only = TRUE,
                          type="tile",
@@ -252,8 +272,35 @@ g_heatmap <- plot_clust(dbf_seurat,
 g_heatmap
 ```
 
+# Assessing the expression level of clusters in cell populations
 
-# Comparing with DBFMCL gene filtering with variance stabilizing transformation
+Checking the level of expression of each cluster in the cell population can be checked using the AddModuleScore from the Seurat library which calculates 'the average expression levels of each program (cluster) on single cell level, subtracted by the aggregated expression of control feature sets'.
+
+```{r FeaturePlot_by_clust}
+for(i in 1:max(dbf_seurat@cluster)){
+  tmp_features <- list(rownames(dbf_seurat@data)[dbf_seurat@cluster == i ])
+pbmc_dbf <- AddModuleScore(object = pbmc_dbf, 
+                           features = tmp_features, 
+                           name = paste("cluster_", i, "_", sep=""), ctrl = 5)
+}
+
+module_list <- vector()
+for(i in 1:max(dbf_seurat@cluster)){
+  module_list[i] <- paste("cluster_", i, "_1", sep="")
+}
+
+FeaturePlot(object = pbmc_dbf, 
+            features = module_list)
+```
+Cluster 1 to 4 and 9 clearly highlight some coordinated gene regulations that occur specifically in particular cell populations. In constrast gene clusters 5 to 8 seem to have very close average profile (see heatmap above). However, closests inspection shows they have expression restricted to different cell populations. Indeed, the cluster 8 contains several genes related to cell cycle highlight that some some cells are apparently in active division or at least engaged in a cell division process. Regarding, gene cluster 5, 6 and 7 it is hard to tell whether they would have to be merged into a single one. However, the FeaturePlot show below tend to indicate that they could represent some diversity inside a single cell population (platelets as shown later).  
+
+```{r FeaturePlot_clust_5_to_7}
+plist <- FeaturePlot(pbmc_dbf, 
+                     features=c("cluster_5_1", "cluster_6_1", "cluster_7_1"))
+plist & xlim(c(-8.7, -8.1)) & ylim(c(4.4, 5.1))
+```
+
+# Comparing DBFMCL gene filtering with variance stabilizing transformation
 
 We can compare the clustering power of the gene selected using DBFMCL with those obtained using the original method from Seurat (variance stabilizing transformation, vst). As shown below, on this PBMC dataset, DBFMCL selected genes (left) tend to produce a more resolutive map of cell populations.
 
@@ -270,6 +317,7 @@ dim_plot_orig <- DimPlot(pbmc_orig, reduction = "umap")
 # Compare reduction map obtained with vst and DBFMCL filtering method.
 dim_plot_orig + dim_plot_dbf
 ```
+
 
 # Performing alternative cell ordering
 
