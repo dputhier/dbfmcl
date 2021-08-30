@@ -271,7 +271,7 @@ dim_plot_orig <- DimPlot(pbmc_orig, reduction = "umap")
 dim_plot_orig + dim_plot_dbf
 ```
 
-# Perform alternative cell ordering
+# Performing alternative cell ordering
 
 It is easy to define alternative ordering for the columns/cells. For instance one may try the hierarchical clustering to try to put emphasis on some gene clusters.
 
