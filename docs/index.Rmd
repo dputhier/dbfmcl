@@ -83,7 +83,7 @@ library(scigenex)
 ## Installing MCL {#installation}
 
 <p class="alert">
-The scigenex method implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install [the original MCL tool](http://micans.org/) from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
+**Warning:** The scigenex library implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install [the original MCL tool](http://micans.org/) from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
 </p>
 
 You may install MCL using conda. Importantly, the *mcl* command should be in your PATH and reachable from within R.
