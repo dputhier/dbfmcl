@@ -83,7 +83,7 @@ library(scigenex)
 ## Installing MCL {#installation}
 
 <p class="alert">
-The scigenex method implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install the original MCL tool from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
+The scigenex method implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install [the original MCL tool](http://micans.org/) from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
 </p>
 
 You may install MCL using conda. Importantly, the *mcl* command should be in your PATH and reachable from within R.
@@ -178,7 +178,7 @@ The scigenex package also proposes another solution that uses the *DBFMCL()* alg
 <p class="comment">
 **Note about DBFMCL.** One important issue in high throuput gene expression analysis is the selection of informative features (i.e genes) and the identification of gene clusters. These datasets are considered to be highly noisy and a typical way of selecting features is to filter them based on variance. Regarding gene partitioning a popular solution is to use k-means. In the context of the microarray data analysis we had shown that another way of selecting informative genes is to try to capture groups of highly correlated features (clusters). These genes can be viewed as elements displaying weak distances to their nearest neighbors that represent densely populated regions  (i.e. strong profile similarities). This solution was previously implemented in the DBFMCL (Density-Based Filtering and Markov Clustering) algorithm. To isolate these regions DBF-MCL computes, for each gene/element, the distance with its kth nearest neighbor (DKNN). In order to define a critical DKNN value (that will depend on the dataset), DBF-MCL computes simulated DKNN values by using an empirical randomization procedure. Given a dataset containing n genes and p samples, a simulated DKNN value is obtained by sampling n distance values from the gene-gene distance matrix D and by extracting the kth-smallest value. This procedure is repeated n times to obtain a set of simulated DKNN values S. Computed distributions of simulated DKNN are used to
 compute a FDR value for each observed DKNN value. The critical value of DKNN is the one for which a user-defined FDR value (typically 10%) is observed. Genes with DKNN value below this threshold are selected and used to construct a graph. In this graph, edges are constructed between two genes (nodes) if one of them belongs to the k-nearest neighbors of the other. Edges are weighted based on the respective coefficient of correlation (i.e., similarity) and the graph obtained is partitioned using the Markov CLustering algorithm (MCL).
-While this algorithm was previously developed for microarray we have adpated it to work with discrete data, especially scRNA-seq data.
+While this algorithm was previously developed for microarray we have adapted it to work with discrete data, especially scRNA-seq data.
 </p>
 
 
@@ -188,12 +188,17 @@ From this Seurat object we can directly perform feature selection and gene clust
 ```{r rundbf}
 library(scigenex)
 pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
-dbf <- DBFMCL(pbmc_df, 
+
+# NOTE: Under Rstudio, the progress bar may sometimes freeze
+# while the algorithm is still running. This has to
+# be fixed.
+dbf <- DBFMCL(pbmc_df[1:3000,], 
               mcl_cmd_line=TRUE,
               distance_method="pearson",
               av_dot_prod_min=2,
               k = 50,
               inflation = 8)
+nrow(dbf)
 ```
 
 # The clusterSet object
@@ -214,6 +219,13 @@ It has the following methods:
 ```{r}
 showMethods(class="ClusterSet", where = "package:scigenex")
 ```
+
+Here the number of selected informative genes is:
+
+```{r}
+nrow(dbf)
+```
+
 
 # Search of cell populations using DBFMCL selected genes
 
