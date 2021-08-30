@@ -1,10 +1,10 @@
 ---
-title: "The dbfmcl library"
+title: "The scigenex library"
 author: "J. Bavais, Sebastien Nin, Aurelie Bergon, Fabrice Lopez, L. Spinelli and D. Puthier"
 date: "`r Sys.Date()`"
 abstract: >
-  A basic task in the analysis of transcriptomics data is the selection of features (genes) and their partitioning to obtain a set of gene clusters that are expected to highlight biological functions, pathways, cell heterogeneity (...). Performing clustering automatically is a daunting task as the number of underlying gene clusters is most generally unknown before starting the analysis. The dbfmcl package is intended to propose a set of functions to infer, in an automated fashion a reasonnable solution to provide, without too much parametrization a first overview of the dataset.
-  dbfmcl package version: `r packageVersion("dbfmcl")`
+  The scigenex package (Single-Cell Informative GENe Explorer) proposes a set of functions to *(i)* extract informative genes from a scRNA-seq experiment, *(ii)* search, store and annotate clusters of co-expressed genes and *(iii)* map them onto UMAP or t-SNE diagram to functionally annotate cell populations. Although users may use their own method to extract informative genes and define gene cluster, we propose, by default, an implementation of the DBFMCL algorithm (*Density Based Filtering and Markov CLustering*) that was previously developed for microarray analysis and have been adapted here for scRNA-seq dataset. The robustness of this algorithm makes it particularly well suited for automated analysis of a scRNA-seq data to get a first intuition of the regulated genes and their impact on cell heterogeneity.
+  scigenex package version: `r packageVersion("scigenex")`
 output:
   html_document:
     fig_caption: yes
@@ -27,6 +27,22 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
+
+
+
+<style>
+
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
+
 ```{r setup, echo=FALSE, results="hide"}
 knitr::opts_chunk$set(tidy = FALSE,
                       cache = FALSE,
@@ -34,43 +50,39 @@ knitr::opts_chunk$set(tidy = FALSE,
                       message = FALSE, error = FALSE, warning = TRUE)
 ```
 
-NOTE: THE VERSION IS CURRENTLY UNSTABLE AND ONLY FOR DEVELOPMENT PURPOSE.
+
+NOTE: THIS VERSION IS CURRENTLY UNSTABLE AND ONLY FOR DEVELOPMENT PURPOSE.
 
 
-# Introduction
+**Note:** if you use scigenex in published research, please cite:
 
-**Note:** if you use dbfmcl in published research, please cite:
+https://github.com/dputhier/scigenex
 
-TODO
-
-One important issue in RNA-seq and scRNA-seq is the selection of informative features (i.e genes) and the identification of gene clusters. The scRNA-seq datasets are considered to be highly noisy and a typical way of selecting features is to filter them based on variance. Regarding gene partitioning a popular solution is to use k-means. In the context of the microarray data analysis we had shown that another way of selecting informative genes is to try to capture groups of highly correlated features (clusters). These genes can be viewed as elements displaying weak distances to their nearest neighbors that represent densely populated regions  (i.e. strong profile similarities). This solution was previously implemented in the DBFMCL (Density-Based Filtering and Markov Clustering) algorithm. To isolate these regions DBF-MCL computes, for each gene/element, the distance with its kth nearest neighbor (DKNN). In order to define a critical DKNN value (that will depend on the dataset), DBF-MCL computes simulated DKNN values by using an empirical randomization procedure. Given a dataset containing n genes and p samples, a simulated DKNN value is obtained by sampling n distance values from the gene-gene distance matrix D and by extracting the kth-smallest value. This procedure is repeated n times to obtain a set of simulated DKNN values S. Computed distributions of simulated DKNN are used to
-compute a FDR value for each observed DKNN value. The critical value of DKNN is the one for which a user-defined FDR value (typically 10%) is observed. Genes with DKNN value below this threshold are selected and used to construct a graph. In this graph, edges are constructed between two genes (nodes) if one of them belongs to the k-nearest neighbors of the other. Edges are weighted based on
-the respective coefficient of correlation (i.e., similarity) and the graph obtained is partitioned using the Markov CLustering algorithm (MCL).
-While this algorithm was previously developed for microarray we have adpated it to work with discrete data, especially scRNA-seq data.
 
 # Installation
+
 
 ## Installing DBFMCL
 
 
-```{r, installation, eval=TRUE, echo=TRUE, include=TRUE}
-devtools::install_github("dputhier/dbfmcl")
-library(dbfmcl)
+```{r installation, installation, eval=TRUE, echo=TRUE, include=TRUE}
+devtools::install_github("dputhier/scigenex")
+library(scigenex)
 ```
 
-## Installing MCL
+## Installing MCL {#installation}
 
-Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we really encourage you to install the original MCL tool from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
+The scigenex method implements the DBFMCL algorithm. Although an implementation of MCL exists for R (see the [MCL library](https://cran.r-project.org/web/packages/MCL/index.html)) we very strongly encourage you to install the original MCL tool from S.M. van Dongen. Indeed, the R version is slower, not reproducible and produced very different results from the original version. 
 
 You may install MCL using conda. Importantly, the *mcl* command should be in your PATH and reachable from within R.
 
-```{bash, eval=FALSE}
+```{bash condainstall, eval=FALSE}
 conda install -c bioconda mcl
 ```
 
 Alternatively install MCL from sources.
 
-```{bash, eval=FALSE}
+```{bash mclfromsource, eval=FALSE}
 # Download the latest version of mcl 
 wget http://micans.org/mcl/src/mcl-latest.tar.gz
 # Uncompress and install mcl
@@ -88,28 +100,26 @@ mcl -h
 ```{r, eval=FALSE, echo=FALSE, include=FALSE}
 # This is for developement purpose
 # please adapt the path.
-path_to_dbfmcl_git = "/Users/puthier/Documents/git/project_dev/dbfmcl/"
+path_to_scigenex_git = "/Users/puthier/Documents/git/project_dev/scigenex/"
 
 reinstall <- function(){
   # For development purpose
   # please adapt the path
-  try(detach("package:dbfmcl"), silent = TRUE)
+  try(detach("package:scigenex"), silent = TRUE)
   library(devtools)
-  roxygen2::roxygenise(path_to_dbfmcl_git)
-  install(path_to_dbfmcl_git)
+  roxygen2::roxygenise(path_to_scigenex_git)
+  install(path_to_scigenex_git)
 }
 reinstall()
-library(dbfmcl)
 ```
 
-# Applying DBFMCL to PBMC dataset
+# Loading and normalizing the PBMC dataset
 
 For this tutorial, we will use the classical Seurat dataset related to Peripheral Blood Mononuclear Cells (PBMC) that is freely available from 10X Genomics. This [dataset](https://cf.10xgenomics.com/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz) contains 2,700 single cells sequenced on the Illumina NextSeq 500. 
   
 
-```{r}
+```{r loadingseurat}
 library(Seurat)
-library(dbfmcl)
 library(ggplot2)
 
 # Load the PBMC dataset
@@ -124,7 +134,7 @@ pbmc_raw <- CreateSeuratObject(counts = pbmc_data, project = "pbmc3k",
 
 TODO : add some regular filtering steps.
 
-```{r}
+```{r normalizingseurat}
 # Perform simple log-transformation and scaling
 pbmc_norm <- NormalizeData(pbmc_raw, 
                           normalization.method = "LogNormalize",
@@ -133,19 +143,39 @@ pbmc_norm <- NormalizeData(pbmc_raw,
 
 ```
 
-From this Seurat object we can directly perform feature selection and gene cluster inference. Here *DBFMCL()* is used with default arguments.
+
+# Selecting Features and getting gene cluster
+
+One of the pivotal object of the scigenex package is the *ClusterSet object*. This object can be created from a count matrix and  list of user defined sets of informative gene (TODO: implement ClusterSetFromGeneSets). 
+
+TODO: provide an example of user defined gene/cluster selection (e.g. variance + K-means).
+
+The scigenex package also proposes another solution that uses the *DBFMCL()* algorithm. This algorithm which was previously develop for microarray data analysis has been adapted for scRNA-seq analysis. The objective of the algorithm is dual: (i) select informative genes, (ii) define a set of gene cluster with the same expression profile.
+
+<p class="comment">
+**Note about DBFMCL.** One important issue in high throuput gene expression analysis is the selection of informative features (i.e genes) and the identification of gene clusters. These datasets are considered to be highly noisy and a typical way of selecting features is to filter them based on variance. Regarding gene partitioning a popular solution is to use k-means. In the context of the microarray data analysis we had shown that another way of selecting informative genes is to try to capture groups of highly correlated features (clusters). These genes can be viewed as elements displaying weak distances to their nearest neighbors that represent densely populated regions  (i.e. strong profile similarities). This solution was previously implemented in the DBFMCL (Density-Based Filtering and Markov Clustering) algorithm. To isolate these regions DBF-MCL computes, for each gene/element, the distance with its kth nearest neighbor (DKNN). In order to define a critical DKNN value (that will depend on the dataset), DBF-MCL computes simulated DKNN values by using an empirical randomization procedure. Given a dataset containing n genes and p samples, a simulated DKNN value is obtained by sampling n distance values from the gene-gene distance matrix D and by extracting the kth-smallest value. This procedure is repeated n times to obtain a set of simulated DKNN values S. Computed distributions of simulated DKNN are used to
+compute a FDR value for each observed DKNN value. The critical value of DKNN is the one for which a user-defined FDR value (typically 10%) is observed. Genes with DKNN value below this threshold are selected and used to construct a graph. In this graph, edges are constructed between two genes (nodes) if one of them belongs to the k-nearest neighbors of the other. Edges are weighted based on the respective coefficient of correlation (i.e., similarity) and the graph obtained is partitioned using the Markov CLustering algorithm (MCL).
+While this algorithm was previously developed for microarray we have adpated it to work with discrete data, especially scRNA-seq data.
+</p>
+
+
+From this Seurat object we can directly perform feature selection and gene cluster inference with DBFMCL. Here *DBFMCL()* is used with default arguments. Note that the *mcl_cmd_line* is set to true to indicate that we won't use the R implementation of MCL (see \@ref(installation))
+
 
 ```{r rundbf}
-  pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
-  dbf <- DBFMCL(pbmc_df, 
-                mcl_cmd_line=TRUE,
-                distance_method="pearson",
-                av_dot_prod_min=2,
-                k = 50,
-                inflation = 8)
+library(scigenex)
+pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
+dbf <- DBFMCL(pbmc_df, 
+              mcl_cmd_line=TRUE,
+              distance_method="pearson",
+              av_dot_prod_min=2,
+              k = 50,
+              inflation = 8)
 ```
 
-Note that the result of the DBFMCL function is an S4 object (ClusterSet).
+# The clusterSet object
+
+The result of the DBFMCL function is an S4 object (ClusterSet).
 
 ```{r}
 is(dbf)
@@ -159,7 +189,7 @@ slotNames(dbf)
 It has the following methods:
 
 ```{r}
-showMethods(class="ClusterSet", where = "package:dbfmcl")
+showMethods(class="ClusterSet", where = "package:scigenex")
 ```
 
 # Search of cell populations using DBFMCL selected genes
@@ -177,7 +207,7 @@ dim_plot_clust <- DimPlot(pbmc_dbf, reduction = "umap")
 dim_plot_clust
 ```
 
-# Transfer infered cell populations to a DBFMCL object
+# Transfer infered cell populations to a ClusterSet object
 
 The inferred populations can now be transferred into the ClusterSet object and represented using the plot_clust function.
 
@@ -198,20 +228,22 @@ Both the dimplot and gene profiles can be presented in the same diagram using th
 g_profiles_no_legend <- g_profiles + theme(legend.position = "none")
 g_profiles_no_legend + dim_plot_clust
 ```
-# Perform alternative cell classification
+
+# Perform alternative cell ordering
 
 
 ```{r}
-library(amap)
+#library(amap)
 ##  hclust on samples
-hier_clustering <- hcluster(log2(t(dbf_seurat@data) +1), method="pearson", link="average", nbproc = 10)
-dbf_seurat@cell_order <- colnames(dbf_seurat@data)[hier_clustering$order]
+#hier_clustering <- hcluster(log2(t(dbf_seurat@data) +1), method="pearson", link="average", nbproc = 10)
+dbf_hc <- dbf_seurat
+#dbf_hc@cell_order <- colnames(dbf_hc@data)[hier_clustering$order]
 
-g_profiles_hc <- plot_clust(dbf_seurat,
-       average_only = TRUE,
-       floor=-1, 
-       ceil=1)
-g_profiles_hc
+#g_profiles_hc <- plot_clust(dbf_hc,
+#       average_only = TRUE,
+#       floor=-1, 
+#       ceil=1)
+#g_profiles_hc
 ```
 
 # R session
