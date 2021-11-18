@@ -76,7 +76,7 @@ https://github.com/dputhier/scigenex
 
 
 ```{r installation, installation, eval=TRUE, echo=TRUE, include=TRUE}
-devtools::install_github("dputhier/scigenex")
+devtools::install_github("dputhier/scigenex", ref = 'develop')
 library(scigenex)
 ```
 
@@ -136,7 +136,7 @@ library(ggplot2)
 
 # Load the PBMC dataset
 # please adapt the path
-setwd("~/Downloads/")
+setwd("/mnt/NAS7/SPlab/BIOINFO_PROJECT/Scigenex_Development/Generate_Documentation/")
 pbmc_data <- Read10X(data.dir = "filtered_gene_bc_matrices/hg19/")
 pbmc_raw <- CreateSeuratObject(counts = pbmc_data, project = "pbmc3k",
                                min.cells = 3, 
@@ -192,8 +192,7 @@ pbmc_df <- as.data.frame(pbmc_norm@assays$RNA@data)
 # NOTE: Under Rstudio, the progress bar may sometimes freeze
 # while the algorithm is still running. This has to
 # be fixed.
-dbf <- DBFMCL(pbmc_df, 
-              mcl_cmd_line=TRUE,
+dbf <- DBFMCL(pbmc_df,
               distance_method="pearson",
               av_dot_prod_min=2,
               k = 50,
