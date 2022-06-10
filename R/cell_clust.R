@@ -53,13 +53,17 @@ cell_clust <- function(object,
   
   # Put cell partitioning result in ClusterSet object
   cell_clusters <- ct$labels
+  names(cell_clusters) <- colnames(data_rc)
+  cell_clusters <- cell_clusters[order(cell_clusters)]
   object@cell_clusters$labels <- as.numeric(cell_clusters)
-  names(object@cell_clusters$labels) <- colnames(object@data)
+  names(object@cell_clusters$labels) <- names(cell_clusters)
   
-  # Put core cellsof each partition
+  # Put core cells of each partition
   cell_cores <- ct$cores
+  names(cell_cores) <- colnames(data_rc)
+  cell_cores <- cell_cores[order(cell_cores)]
   object@cell_clusters$cores <- as.numeric(cell_cores)
-  names(object@cell_clusters$cores) <- colnames(object@data)
+  names(object@cell_clusters$cores) <- names(cell_cores)
   
   return(object)
 }
