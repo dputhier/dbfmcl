@@ -33,8 +33,7 @@
 #' of the Gene Expression Omnibus database. PLoSONE, 2008;3(12):e4001.
 #'
 #' @examples
-#' 
-#' # Set verbosity to 1 to only display info messages.
+#' # Set verbosity to 1 to display info messages only.
 #' set_verbosity(1)
 #' 
 #' # Create a matrix with 4 signatures
@@ -61,6 +60,7 @@ select_genes <- function(data = NULL,
                                              "kendall"),
                          highest = 0.00005,
                          k = 80,
+                         no_anti_cor=F,
                          row_sum = 1,
                          fdr = 0.005,
                          which_slot = c("data", "sct", "counts"),
@@ -90,7 +90,7 @@ select_genes <- function(data = NULL,
                                                   "kendall"))
   
   # Check if highest is between 0 and 1
-  if (highest < 0 || highest > 1) {
+  if (highest < 0 | highest > 1) {
     print_msg("highest argument should be >= 0 and <= 1.",
               msg_type = "STOP")              
   }
@@ -129,11 +129,17 @@ select_genes <- function(data = NULL,
   # and cosine, 0 < distance < 2.
   if (distance_method == "pearson") {
     dist_matrix <- qlcMatrix::corSparse(t(select_for_correlation))
+    if(no_anti_cor)
+      dist_matrix[dist_matrix < 0] <- 0
     dist_matrix <- 1 - dist_matrix
   }else  if (distance_method == "kendall") {
     dist_matrix <- as.matrix(amap::Dist(select_for_correlation, method="kendall", nbproc=dist_threads))
+    if(no_anti_cor)
+      dist_matrix[dist_matrix < 0] <- 0
   } else if (distance_method == "cosine") {
     dist_matrix <- as.matrix(qlcMatrix::cosSparse(t(select_for_correlation)))
+    if(no_anti_cor)
+      dist_matrix[dist_matrix < 0] <- 0
     dist_matrix <- 1 - dist_matrix
   } else if (distance_method == "euclidean") {
     dist_matrix <- as.matrix(dist(select_for_correlation))
@@ -187,8 +193,8 @@ select_genes <- function(data = NULL,
     # Add the neigbhors to the list
     l_knn[[gene]] <- gene_dist
     
-    # Select the kth pearson correlation values. 
-    # This value corresponds to the DKNN of the gene(i)
+    # Select the kth distance. 
+    # This value corresponds to the DKNN of gene_i
     df_dknn[gene, "dknn_values"] <- gene_dist[k]
   }
   
